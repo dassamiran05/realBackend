@@ -24,15 +24,10 @@ app.use("/uploads", express.static(rootPath + "/uploads"));
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/product", productRoutes);
 
-app.get("/test", (req, res) => {
+app.get("/", (req, res) => {
   res.json({ message: "welcome to RealEstate" });
 });
 
-
-
 app.listen(PORT, () => {
-  console.log(
-    // `Server is running on ${process.env.DEV_MODE} mode on ${PORT}`.bgCyan.white
-    "ghfhgfh"
-  );
+  console.log(`Server is running on ${process.env.DEV_MODE} mode on ${PORT}`);
 });
