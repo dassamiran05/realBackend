@@ -10,29 +10,35 @@ import v2 from "../helper/cloudinaryconfig.js";
 dotenv.config();
 
 export const uploadbylinkController = async (req, res) => {
-  const { link } = req.body;
+  try {
+    const { link } = req.body;
 
-  // const { files } = req;
-  // const uploadPromises = files?.map((file) => v2.uploader.upload(file.path));
-  // const uploadRes = await Promise.all(uploadPromises);
+    // const { files } = req;
+    // const uploadPromises = files?.map((file) => v2.uploader.upload(file.path));
+    // const uploadRes = await Promise.all(uploadPromises);
 
-  const result = await v2.uploader.upload(link);
-  // console.log(result);
-  if (result) {
-    const { public_id, format, secure_url } = result;
+    const result = await v2.uploader.upload(link);
+    // console.log(result);
+    if (result) {
+      const { public_id, format, secure_url } = result;
 
-    const fileName = "photo" + Date.now() + `.${format}`;
+      const fileName = "photo" + Date.now() + `.${format}`;
 
+      res.json({
+        file: { publicId: public_id, url: secure_url, name: fileName },
+        success: true,
+      });
+    }
+
+    // await downloader.image({
+    //   url: link,
+    //   dest: rootPath + "/uploads/" + newName,
+    // });
+  } catch (error) {
     res.json({
-      file: { publicId: public_id, url: secure_url, name: fileName },
-      success: true,
+      error,
     });
   }
-
-  // await downloader.image({
-  //   url: link,
-  //   dest: rootPath + "/uploads/" + newName,
-  // });
 };
 
 export const uploadFilefromDesktop = async (req, res) => {
@@ -135,72 +141,88 @@ export const createPlacesController = async (req, res) => {
 };
 
 export const getPlacesController = async (req, res) => {
-  const placesData = await places.find({ owner: req.user._id });
-  res.json({
-    success: true,
-    message: "Data fetched successfully",
-    result: placesData,
-  });
+  try {
+    const placesData = await places.find({ owner: req.user._id });
+    res.json({
+      success: true,
+      message: "Data fetched successfully",
+      result: placesData,
+    });
+  } catch (error) {
+    res.json({ error });
+  }
 };
 
 export const getPlaceByidController = async (req, res) => {
-  const { id } = req.params;
-  const placeData = await places.findById({ _id: id });
-  if (placeData) {
-    res.json({
-      success: true,
-      message: "Successfully fetched",
-      result: placeData,
-    });
-  } else {
-    res.json({ success: false, message: "Something went wrong" });
+  try {
+    const { id } = req.params;
+    const placeData = await places.findById({ _id: id });
+    if (placeData) {
+      res.json({
+        success: true,
+        message: "Successfully fetched",
+        result: placeData,
+      });
+    } else {
+      res.json({ success: false, message: "Something went wrong" });
+    }
+  } catch (error) {
+    res.json({ error });
   }
 };
 
 export const updatePlaceByidController = async (req, res) => {
-  const { id } = req.params;
-  const {
-    title,
-    address,
-    description,
-    extraInfo,
-    checkIn,
-    checkOut,
-    maxGuests,
-    price,
-    perks,
-    photos,
-  } = req.body;
-  const placesDoc = await places.findById({ _id: id });
-  console.log(price, typeof price);
-
-  if (req.user._id === placesDoc.owner.toString()) {
-    placesDoc.set({
-      owner: req.user._id,
+  try {
+    const { id } = req.params;
+    const {
       title,
       address,
       description,
       extraInfo,
-      checkIn: Number(checkIn),
-      checkOut: Number(checkOut),
-      maxGuests: Number(maxGuests),
-      price: Number(price),
+      checkIn,
+      checkOut,
+      maxGuests,
+      price,
       perks,
       photos,
-    });
+    } = req.body;
+    const placesDoc = await places.findById({ _id: id });
+    console.log(price, typeof price);
 
-    await placesDoc.save();
-    res.json({ message: "Updated Successfully", success: true });
+    if (req.user._id === placesDoc.owner.toString()) {
+      placesDoc.set({
+        owner: req.user._id,
+        title,
+        address,
+        description,
+        extraInfo,
+        checkIn: Number(checkIn),
+        checkOut: Number(checkOut),
+        maxGuests: Number(maxGuests),
+        price: Number(price),
+        perks,
+        photos,
+      });
+
+      await placesDoc.save();
+      res.json({ message: "Updated Successfully", success: true });
+    }
+  } catch (error) {
+    res.json({ error });
   }
 };
 
 export const getallplacesforhomepageController = async (req, res) => {
-  const result = await places.find();
-  res.json({
-    success: true,
-    places: result,
-    message: "All places successfully fetched",
-  });
+  try {
+    const result = await places.find();
+    res.json({
+      success: true,
+      places: result,
+      message: "All places successfully fetched",
+    });
+  } catch (error) {
+    res.json({ error });
+  }
 };
 
 export const getSingleplaceController = async (req, res) => {
