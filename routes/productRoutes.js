@@ -14,10 +14,9 @@ import {
   uploadbylinkController,
 } from "../controller/productController.js";
 import multer from "multer";
+import { upload } from "../multer/Imageupload.js";
 
 const router = express.Router();
-
-
 
 router.post(
   "/upload-by-link",
@@ -27,12 +26,9 @@ router.post(
   uploadbylinkController
 );
 
-const photosMiddleware = multer({ dest: "uploads/" });
-router.post(
-  "/upload",
-  photosMiddleware.array("photos", 100),
-  uploadFilefromDesktop
-);
+// const photosMiddleware = multer({ dest: "uploads/" });
+
+router.post("/upload", upload.array("photos", 100), uploadFilefromDesktop);
 
 router.post("/createplace", requireSignin, createPlacesController);
 
