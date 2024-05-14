@@ -5,36 +5,79 @@ import { rootPath } from "get-root-path";
 import fs from "fs";
 import places from "../models/Places.js";
 import booking from "../models/booking.js";
+import v2 from "../helper/cloudinaryconfig.js";
 
 dotenv.config();
 
 export const uploadbylinkController = async (req, res) => {
   const { link } = req.body;
 
-  const newName = "photo" + Date.now() + ".jpg";
+  // const { files } = req;
+  // const uploadPromises = files?.map((file) => v2.uploader.upload(file.path));
+  // const uploadRes = await Promise.all(uploadPromises);
 
-  await downloader.image({
-    url: link,
-    dest: rootPath + "/uploads/" + newName,
-  });
+  const result = await v2.uploader.upload(link);
+  // console.log(result);
+  if (result) {
+    const { public_id, format, secure_url } = result;
 
-  res.json({ filename: newName, success: true });
+    const fileName = "photo" + Date.now() + `.${format}`;
+
+    res.json({
+      file: { publicId: public_id, url: secure_url, name: fileName },
+      success: true,
+    });
+  }
+
+  // await downloader.image({
+  //   url: link,
+  //   dest: rootPath + "/uploads/" + newName,
+  // });
 };
 
 export const uploadFilefromDesktop = async (req, res) => {
-  let uploadedfile = [];
-  req.files.forEach((element) => {
-    const { path, originalname, filename } = element;
-    const part = originalname.split(".");
-    let extension = part[part.length - 1];
+  try {
+    // let uploadedfile = [];
 
-    let newPath = path + "." + extension;
-    let file = filename + "." + extension;
+    const { files } = req;
+    const uploadPromises = files?.map((file) => v2.uploader.upload(file.path));
+    const uploadRes = await Promise.all(uploadPromises);
 
-    fs.renameSync(path, newPath);
-    uploadedfile.push(file);
-  });
-  res.json(uploadedfile);
+    const result = uploadRes.map((upload) => {
+      return {
+        name: upload?.original_filename + `.${upload?.format}`,
+        publicId: upload?.public_id,
+        url: upload?.secure_url,
+      };
+    });
+    console.log(result);
+
+    if (result) {
+      res.json({
+        files: result,
+        success: true,
+      });
+    }
+
+    // req.files.forEach((element) => {
+    //   const { path, originalname, filename } = element;
+    //   const part = originalname.split(".");
+    //   let extension = part[part.length - 1];
+
+    //   let newPath = path + "." + extension;
+    //   let file = filename + "." + extension;
+
+    //   fs.renameSync(path, newPath);
+    //   uploadedfile.push(file);
+    // });
+    // res.json(uploadedfile);
+  } catch (error) {
+    res.json({
+      error,
+      success: false,
+      message: "Something wrong",
+    });
+  }
 };
 
 export const createPlacesController = async (req, res) => {
